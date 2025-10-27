@@ -1,5 +1,5 @@
-import 'package:belajar_flutter/pages/search.dart';
-import 'package:belajar_flutter/pages/home.dart';
+import 'package:belajar_flutter/pages/daftar_buku.dart';
+import 'package:belajar_flutter/pages/tambah_buku.dart';
 import 'package:flutter/material.dart';
 
 class Navbar extends StatefulWidget {
@@ -21,7 +21,7 @@ class _NavbarState extends State<Navbar> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Navbar Example'),
+        title: const Text('Navbar Example', style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.blue,
       ),
       body: IndexedStack(
@@ -34,12 +34,12 @@ class _NavbarState extends State<Navbar> {
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.plus_one),
+            label: 'Tambah Buku',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.menu_book_sharp),
+            label: 'Daftar Buku',
           ),
         ],
         currentIndex: _selectedIndex,
