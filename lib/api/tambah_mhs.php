@@ -2,13 +2,11 @@
 header("Content-Type: application/json");
 include "config.php";
 
-// Cek metode
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["status" => false, "message" => "Gunakan metode POST."]);
     exit;
 }
 
-// Ambil input JSON dari Flutter
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!$data) {
@@ -28,7 +26,6 @@ if (empty($nama) || empty($npm) || empty($email) || empty($tgl_lahir) || empty($
     exit;
 }
 
-// Simpan ke database
 $sql = "INSERT INTO mahasiswa (nama, npm, email, alamat, tglLahir, jamBimbingan)
         VALUES ('$nama', '$npm', '$email', '$alamat', STR_TO_DATE('$tgl_lahir', '%d/%m/%Y'), '$jam_bimbingan')";
 

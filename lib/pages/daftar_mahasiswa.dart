@@ -1,7 +1,6 @@
+import 'package:belajar_flutter/helper/database.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../main.dart';
+import 'form_mahasiswa.dart';
 
 class DaftarMahasiswaPage extends StatefulWidget {
   const DaftarMahasiswaPage({super.key});
@@ -15,7 +14,7 @@ class _DaftarMahasiswaPageState extends State<DaftarMahasiswaPage> {
   bool isLoading = true;
   String errorMessage = '';
 
-  static const String apiGetUrl = 'http://api.test:8080/get_mahasiswa.php';
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   @override
   void initState() {
@@ -30,28 +29,11 @@ class _DaftarMahasiswaPageState extends State<DaftarMahasiswaPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse(apiGetUrl));
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        
-        if (responseData['status'] == true) {
-          setState(() {
-            mahasiswaList = List<Map<String, dynamic>>.from(responseData['data']);
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            errorMessage = responseData['message'];
-            isLoading = false;
-          });
-        }
-      } else {
-        setState(() {
-          errorMessage = 'Gagal menghubungi server. Status: ${response.statusCode}';
-          isLoading = false;
-        });
-      }
+      final data = await _dbHelper.getAllMahasiswa();
+      setState(() {
+        mahasiswaList = data;
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         errorMessage = 'Terjadi kesalahan: $e';
@@ -71,6 +53,41 @@ class _DaftarMahasiswaPageState extends State<DaftarMahasiswaPage> {
     // Refresh data setelah kembali dari form
     if (result == true) {
       _loadData();
+    }
+  }
+
+  Future<void> _deleteMahasiswa(int id, String nama) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Yakin ingin menghapus data "$nama"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _dbHelper.deleteMahasiswa(id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data "$nama" berhasil dihapus')),
+        );
+        _loadData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menghapus data: $e')),
+        );
+      }
     }
   }
 
@@ -260,6 +277,12 @@ class _DaftarMahasiswaPageState extends State<DaftarMahasiswaPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            DataColumn(
+              label: Text(
+                'Aksi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
           rows: mahasiswaList.asMap().entries.map((entry) {
             int index = entry.key;
@@ -283,6 +306,16 @@ class _DaftarMahasiswaPageState extends State<DaftarMahasiswaPage> {
                 ),
                 DataCell(Text(mahasiswa['tglLahir'] ?? '-')),
                 DataCell(Text(mahasiswa['jamBimbingan'] ?? '-')),
+                DataCell(
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _deleteMahasiswa(
+                      mahasiswa['id'],
+                      mahasiswa['nama'] ?? 'Unknown',
+                    ),
+                    tooltip: 'Hapus',
+                  ),
+                ),
               ],
             );
           }).toList(),
